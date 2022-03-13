@@ -1,0 +1,8 @@
+.vscode
+.idea
+ckt
+macros
+test
+lib*.so
+obj
+go

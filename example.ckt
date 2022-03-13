@@ -1,0 +1,71 @@
+@use 
+@import 
+
+circuit srlatch {
+    interface {
+        s, r: input;
+        q, qnot: output;
+        a: transput;
+    }
+
+    declare {
+        n0, n1: nor(2);
+    }
+
+    connect s to n0.in[0];
+    connect r to n1.in[0];
+    connect n0.out to n1.in[1];
+    connect n1.out to n0.in[1], q;
+}
+
+circuit dff {
+    interface {
+        d: input;       // data input
+        q: output;      // current value of latch
+        c: input;       // clock input
+    }
+
+    declare {
+        sr: srlatch;
+        n: not;
+        a0, a1: and(2);
+    }
+
+    connect d to n.in;      // invert d
+
+    // hook up and gate inputs
+    connect d to a0.in[0];
+    connect n.out to a1.in[0];
+
+    // connect clock to and gate
+    connect c to a0.in[1], a1.in[1]; 
+
+    // hook up and gates to sr latch
+    connect a0.out to sr.s;
+    connect a1.out to sr.r;
+
+    // connect sr latch output to circuit output
+    connect sr.q to q;
+}
+
+circuit dlatch(int n = 1) {
+    interface {
+        d: [n]input;    // n data bits
+        c: input;       // clock input
+        q: [n]output;   // n data bits, contents of d latch
+    }
+
+    declare {
+        dffs: [n]dff;
+    }
+
+    // for loop in the form
+    // <iterator_variable: start .. [end]>
+    // resolved when the ast is generated
+    // ie this code generates n ast nodes
+    for i: 0 .. n {
+        connect d[i] to dffs[i].d;
+        connect c to dffs[i].c;
+        connect dffs[i].q to q[i];    
+    }
+}
